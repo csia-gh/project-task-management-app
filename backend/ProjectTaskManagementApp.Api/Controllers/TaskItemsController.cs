@@ -19,9 +19,22 @@ namespace ProjectTaskManagementApp.Api.Controllers
 
         // GET: api/TaskItems
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<TaskItem>>> GetTaskItems()
+        public async Task<ActionResult<IEnumerable<TaskItemResponseDTO>>> GetTaskItems()
         {
-            return await _context.TaskItems.ToListAsync();
+            var taskItems = await _context.TaskItems
+               .Select(t => new TaskItemResponseDTO
+               {
+                   Id = t.Id,
+                   Title = t.Title,
+                   Description = t.Description,
+                   Status = t.Status,
+                   DueDate = t.DueDate,
+                   CreatedAt = t.CreatedAt,
+                   ProjectId = t.ProjectId
+               })
+               .ToListAsync();
+
+            return Ok(taskItems);
         }
 
         // GET: api/TaskItems/5
@@ -46,35 +59,35 @@ namespace ProjectTaskManagementApp.Api.Controllers
                 ProjectId = taskItem.ProjectId
             };
 
-            return responseDTO;
+            return Ok(responseDTO);
         }
 
         // PUT: api/TaskItems/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPut("{id}")]
-        public async Task<IActionResult> PutTaskItem(Guid id, TaskItem taskItem)
+        public async Task<IActionResult> PutTaskItem(Guid id, TaskItemUpdateDTO taskItemDTO)
         {
-            if (id != taskItem.Id)
+            var taskItem = await _context.TaskItems.FindAsync(id);
+
+            if (taskItem == null)
             {
-                return BadRequest();
+                return NotFound();
             }
 
-            _context.Entry(taskItem).State = EntityState.Modified;
+            taskItem.Title = taskItemDTO.Title;
+            taskItem.Description = string.IsNullOrWhiteSpace(taskItemDTO.Description)
+                ? null
+                : taskItemDTO.Description;
+            taskItem.Status = taskItemDTO.Status;
+            taskItem.DueDate = taskItemDTO.DueDate;
 
             try
             {
                 await _context.SaveChangesAsync();
             }
-            catch (DbUpdateConcurrencyException)
+            catch (DbUpdateConcurrencyException) when (!TaskItemExists(id))
             {
-                if (!TaskItemExists(id))
-                {
-                    return NotFound();
-                }
-                else
-                {
-                    throw;
-                }
+                return NotFound();
             }
 
             return NoContent();
