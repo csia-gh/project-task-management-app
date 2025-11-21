@@ -19,14 +19,59 @@ namespace ProjectTaskManagementApp.Api.Controllers
 
         // GET: api/Projects
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Project>>> GetProjects()
+        public async Task<ActionResult<IEnumerable<ProjectResponseDTO>>> GetProjects()
         {
-            return await _context.Projects.ToListAsync();
+            var projects = await _context.Projects
+                .Select(p => new ProjectResponseDTO
+                 {
+                   Id = p.Id,
+                   Name = p.Name,
+                   Description = p.Description,
+                   CreatedAt = p.CreatedAt
+                })
+                .ToListAsync();
+
+            return Ok(projects);
         }
 
         // GET: api/Projects/5
         [HttpGet("{id}")]
-        public async Task<ActionResult<Project>> GetProject(Guid id)
+        public async Task<ActionResult<ProjectDetailResponseDTO>> GetProject(Guid id)
+        {
+            var project = await _context.Projects
+                .Include(p => p.TaskItems)
+                .FirstOrDefaultAsync(p => p.Id == id);
+
+            if (project == null)
+            {
+                return NotFound();
+            }
+
+            var responseDTO = new ProjectDetailResponseDTO
+            {
+                Id = project.Id,
+                Name = project.Name,
+                Description = project.Description,
+                CreatedAt = project.CreatedAt,
+                TaskItems = project.TaskItems.Select(t => new TaskItemResponseDTO
+                {
+                    Id = t.Id,
+                    Title = t.Title,
+                    Description = t.Description,
+                    Status = t.Status,
+                    DueDate = t.DueDate,
+                    CreatedAt = t.CreatedAt,
+                    ProjectId = t.ProjectId
+                }).ToList()
+            };
+
+            return responseDTO;
+        }
+
+        // PUT: api/Projects/5
+        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
+        [HttpPut("{id}")]
+        public async Task<IActionResult> PutProject(Guid id, ProjectCreateUpdateDTO projectDTO)
         {
             var project = await _context.Projects.FindAsync(id);
 
@@ -35,35 +80,18 @@ namespace ProjectTaskManagementApp.Api.Controllers
                 return NotFound();
             }
 
-            return project;
-        }
-
-        // PUT: api/Projects/5
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
-        [HttpPut("{id}")]
-        public async Task<IActionResult> PutProject(Guid id, Project project)
-        {
-            if (id != project.Id)
-            {
-                return BadRequest();
-            }
-
-            _context.Entry(project).State = EntityState.Modified;
+            project.Name = projectDTO.Name;
+            project.Description = string.IsNullOrWhiteSpace(projectDTO.Description)
+                ? null
+                : projectDTO.Description;
 
             try
             {
                 await _context.SaveChangesAsync();
             }
-            catch (DbUpdateConcurrencyException)
+            catch (DbUpdateConcurrencyException) when (!ProjectExists(id))
             {
-                if (!ProjectExists(id))
-                {
-                    return NotFound();
-                }
-                else
-                {
-                    throw;
-                }
+                return NotFound();
             }
 
             return NoContent();
@@ -72,7 +100,7 @@ namespace ProjectTaskManagementApp.Api.Controllers
         // POST: api/Projects
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
-        public async Task<ActionResult<Project>> PostProject(ProjectCreateDTO projectDTO)
+        public async Task<ActionResult<ProjectResponseDTO>> PostProject(ProjectCreateUpdateDTO projectDTO)
         {
             var project = new Project
             {
@@ -85,7 +113,15 @@ namespace ProjectTaskManagementApp.Api.Controllers
             _context.Projects.Add(project);
             await _context.SaveChangesAsync();
 
-            return CreatedAtAction(nameof(GetProject), new { id = project.Id }, project);
+            var responseDTO = new ProjectResponseDTO
+            {
+                Id = project.Id,
+                Name = project.Name,
+                Description = project.Description,
+                CreatedAt = project.CreatedAt
+            };
+
+            return CreatedAtAction(nameof(GetProject), new { id = project.Id }, responseDTO);
         }
 
         // DELETE: api/Projects/5

@@ -2,7 +2,7 @@
 
 namespace ProjectTaskManagementApp.Api.DTOs
 {
-    public class ProjectCreateDTO
+    public class ProjectCreateUpdateDTO
     {
         [Required]
         [MaxLength(100)]
