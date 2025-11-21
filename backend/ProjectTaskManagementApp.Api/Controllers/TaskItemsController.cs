@@ -1,12 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using ProjectTaskManagementApp.Api.Data;
 using ProjectTaskManagementApp.Api.Data.Entities;
+using ProjectTaskManagementApp.Api.DTOs;
 
 namespace ProjectTaskManagementApp.Api.Controllers
 {
@@ -30,7 +26,7 @@ namespace ProjectTaskManagementApp.Api.Controllers
 
         // GET: api/TaskItems/5
         [HttpGet("{id}")]
-        public async Task<ActionResult<TaskItem>> GetTaskItem(Guid id)
+        public async Task<ActionResult<TaskItemResponseDTO>> GetTaskItem(Guid id)
         {
             var taskItem = await _context.TaskItems.FindAsync(id);
 
@@ -39,7 +35,18 @@ namespace ProjectTaskManagementApp.Api.Controllers
                 return NotFound();
             }
 
-            return taskItem;
+            var responseDTO = new TaskItemResponseDTO
+            {
+                Id = taskItem.Id,
+                Title = taskItem.Title,
+                Description = taskItem.Description,
+                Status = taskItem.Status,
+                DueDate = taskItem.DueDate,
+                CreatedAt = taskItem.CreatedAt,
+                ProjectId = taskItem.ProjectId
+            };
+
+            return responseDTO;
         }
 
         // PUT: api/TaskItems/5
@@ -76,12 +83,41 @@ namespace ProjectTaskManagementApp.Api.Controllers
         // POST: api/TaskItems
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
-        public async Task<ActionResult<TaskItem>> PostTaskItem(TaskItem taskItem)
+        public async Task<ActionResult<TaskItemResponseDTO>> PostTaskItem(TaskItemCreateDTO taskItemDTO)
         {
+            var projectExists = await _context.Projects
+                .AnyAsync(p => p.Id == taskItemDTO.ProjectId);
+
+            if (!projectExists)
+            {
+                return NotFound($"Project with ID {taskItemDTO.ProjectId} not found.");
+            }
+
+            var taskItem = new TaskItem()
+            {
+                Title = taskItemDTO.Title,
+                Description = string.IsNullOrWhiteSpace(taskItemDTO.Description)
+                    ? null
+                    : taskItemDTO.Description, 
+                DueDate = taskItemDTO.DueDate,
+                ProjectId = taskItemDTO.ProjectId
+            };
+
             _context.TaskItems.Add(taskItem);
             await _context.SaveChangesAsync();
 
-            return CreatedAtAction("GetTaskItem", new { id = taskItem.Id }, taskItem);
+            var responseDTO = new TaskItemResponseDTO
+            {
+                Id = taskItem.Id,
+                Title = taskItem.Title,
+                Description = taskItem.Description,
+                Status = taskItem.Status,
+                DueDate = taskItem.DueDate,
+                CreatedAt = taskItem.CreatedAt,
+                ProjectId = taskItem.ProjectId
+            };
+
+            return CreatedAtAction(nameof(GetTaskItem), new { id = taskItem.Id }, responseDTO);
         }
 
         // DELETE: api/TaskItems/5

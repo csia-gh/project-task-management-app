@@ -2,7 +2,7 @@
 
 namespace ProjectTaskManagementApp.Api.Data.Entities
 {
-    public enum TaskStatus
+    public enum TaskItemStatus
     {
         Todo,
         InProgress,
@@ -30,7 +30,7 @@ namespace ProjectTaskManagementApp.Api.Data.Entities
 
         public string? Description { get; set; }
 
-        public TaskStatus Status { get; set; } = TaskStatus.Todo;
+        public TaskItemStatus Status { get; set; } = TaskItemStatus.Todo;
 
         public DateTime? DueDate { get; set; }
 

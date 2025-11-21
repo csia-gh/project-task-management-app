@@ -1,12 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using ProjectTaskManagementApp.Api.Data;
 using ProjectTaskManagementApp.Api.Data.Entities;
+using ProjectTaskManagementApp.Api.DTOs;
 
 namespace ProjectTaskManagementApp.Api.Controllers
 {
@@ -76,12 +72,20 @@ namespace ProjectTaskManagementApp.Api.Controllers
         // POST: api/Projects
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
-        public async Task<ActionResult<Project>> PostProject(Project project)
+        public async Task<ActionResult<Project>> PostProject(ProjectCreateDTO projectDTO)
         {
+            var project = new Project
+            {
+                Name = projectDTO.Name,
+                Description = string.IsNullOrWhiteSpace(projectDTO.Description)
+                    ? null
+                    : projectDTO.Description
+            };
+
             _context.Projects.Add(project);
             await _context.SaveChangesAsync();
 
-            return CreatedAtAction("GetProject", new { id = project.Id }, project);
+            return CreatedAtAction(nameof(GetProject), new { id = project.Id }, project);
         }
 
         // DELETE: api/Projects/5
