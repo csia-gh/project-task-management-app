@@ -2,14 +2,11 @@
   <h2>Projects</h2>
 </div>
 
-<app-error-message [(message)]="errorMessage" />
-<app-success-message [(message)]="successMessage" />
-
-@if (isLoading) {
+@if (isLoading()) {
 <app-loading-spinner />
-} @if (!isLoading) {
+} @if (!isLoading()) {
 <app-project-table
-  [projects]="projects"
+  [projects]="projects()"
   (viewDetails)="viewProjectDetails($event)"
   (deleteProject)="deleteProject($event)"
 />
