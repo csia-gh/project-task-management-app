@@ -1,0 +1,20 @@
+<nav class="navbar navbar-light bg-light shadow-sm py-2">
+  <div class="container">
+    <span class="navbar-brand fw-semibold">Project & Task Manager</span>
+
+    <ul class="navbar-nav flex-row ms-auto">
+      @if (showProjectsLink) {
+      <li class="nav-item me-3">
+        <a
+          class="nav-link"
+          [routerLink]="['/']"
+          routerLinkActive="active"
+          [routerLinkActiveOptions]="{ exact: true }"
+        >
+          Projects
+        </a>
+      </li>
+      }
+    </ul>
+  </div>
+</nav>
