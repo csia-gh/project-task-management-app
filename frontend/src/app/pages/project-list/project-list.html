@@ -1,5 +1,13 @@
 <div class="d-flex justify-content-between align-items-center mb-4">
   <h2>Projects</h2>
+  <button
+    class="btn btn-primary"
+    data-bs-toggle="modal"
+    data-bs-target="#projectModal"
+    (click)="openCreateModal()"
+  >
+    <i class="bi bi-plus-circle"></i> New Project
+  </button>
 </div>
 
 @if (isLoading()) {
@@ -11,3 +19,5 @@
   (deleteProject)="deleteProject($event)"
 />
 }
+
+<app-create-project-modal (projectCreated)="onProjectCreated($event)" />
