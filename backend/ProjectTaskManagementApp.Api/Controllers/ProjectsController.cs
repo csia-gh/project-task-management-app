@@ -17,6 +17,44 @@ namespace ProjectTaskManagementApp.Api.Controllers
             _context = context;
         }
 
+        // GET: api/Projects/5/tasks?status=Done
+        [HttpGet("{projectId}/tasks")]
+        public async Task<ActionResult<IEnumerable<TaskItemResponseDTO>>> GetProjectTasks(
+            Guid projectId,
+            [FromQuery] TaskItemStatus? status = null)
+        {
+            var projectExists = await _context.Projects.AnyAsync(p => p.Id == projectId);
+
+            if (!projectExists)
+            {
+                return NotFound($"Project with ID {projectId} not found.");
+            }
+
+            var query = _context.TaskItems
+                .Where(t => t.ProjectId == projectId);
+
+            if (status.HasValue)
+            {
+                query = query.Where(t => t.Status == status.Value);
+            }
+
+            var taskItems = await query
+                .OrderBy(t => t.DueDate)
+                .Select(t => new TaskItemResponseDTO
+                {
+                    Id = t.Id,
+                    Title = t.Title,
+                    Description = t.Description,
+                    Status = t.Status,
+                    DueDate = t.DueDate,
+                    CreatedAt = t.CreatedAt,
+                    ProjectId = t.ProjectId
+                })
+                .ToListAsync();
+
+            return Ok(taskItems);
+        }
+
         // GET: api/Projects
         [HttpGet]
         public async Task<ActionResult<IEnumerable<ProjectResponseDTO>>> GetProjects()
