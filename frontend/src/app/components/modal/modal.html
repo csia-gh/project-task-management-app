@@ -1,13 +1,26 @@
 <div
   class="modal fade"
-  [id]="modalId"
+  [class.d-block]="isDisplayed()"
+  [class.show]="isShow()"
   tabindex="-1"
-  data-bs-backdrop="static"
-  data-bs-keyboard="false"
+  role="dialog"
+  aria-modal="true"
 >
-  <div class="modal-dialog">
-    <div class="modal-content">
-      <ng-content></ng-content>
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content shadow-lg">
+      <div class="modal-header">
+        <h5 class="modal-title">
+          <ng-content select="[heading]"></ng-content>
+        </h5>
+        <button type="button" class="btn-close" (click)="closeModal()"></button>
+      </div>
+      <div class="modal-body">
+        <ng-content></ng-content>
+      </div>
     </div>
   </div>
 </div>
+
+@if (isDisplayed()) {
+<div class="modal-backdrop fade" [class.show]="isShow()"></div>
+}

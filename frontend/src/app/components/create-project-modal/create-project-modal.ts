@@ -1,48 +1,51 @@
-import { Component, EventEmitter, Output, signal, ViewChild } from '@angular/core';
+import { Component, EventEmitter, inject, Output, ViewChild } from '@angular/core';
 import { CreateAndUpdateProjectDto } from '../../models/project.model';
+import { ModalService } from '../../services/modal.service';
 import { Modal } from '../modal/modal';
-import { ProjectForm } from '../project-form/project-form';
+import { FormsModule, NgForm } from '@angular/forms';
+import { ProjectFormFields } from '../project-form-fields/project-form-fields';
 
 @Component({
   selector: 'app-create-project-modal',
-  imports: [Modal, ProjectForm],
+  imports: [Modal, FormsModule, ProjectFormFields],
   templateUrl: './create-project-modal.html',
 })
 export class CreateProjectModal {
   @Output() projectCreated = new EventEmitter<CreateAndUpdateProjectDto>();
-  @ViewChild('modal') modal!: Modal;
+
+  private modalService = inject(ModalService);
+
+  @ViewChild('projectFormElement') form?: NgForm;
 
   projectForm: CreateAndUpdateProjectDto = {
     name: '',
     description: '',
   };
 
-  isOpen = signal(false);
-
   get canSubmit(): boolean {
     return !!this.projectForm.name?.trim();
   }
 
-  open() {
-    this.isOpen.set(true);
-    this.modal.open();
-  }
-
-  onSubmit(): void {
+  onSubmit() {
     if (this.canSubmit) {
       this.projectCreated.emit({ ...this.projectForm });
-      this.modal.close();
+      this.modalService.close('createProject');
       this.resetForm();
     }
   }
 
-  onCancel(): void {
-    this.modal.close();
+  onCancel() {
+    this.modalService.close('createProject');
     this.resetForm();
   }
 
-  private resetForm(): void {
-    this.projectForm = { name: '', description: '' };
-    this.isOpen.set(false);
+  private resetForm() {
+    const emptyForm = { name: '', description: '' };
+
+    if (this.form) {
+      this.form.resetForm(emptyForm);
+    }
+
+    this.projectForm = emptyForm;
   }
 }

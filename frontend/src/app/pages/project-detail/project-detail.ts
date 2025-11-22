@@ -6,11 +6,12 @@ import { ProjectService } from '../../services/project.service';
 import { ToastrService } from 'ngx-toastr';
 import { LoadingSpinner } from '../../components/loading-spinner/loading-spinner';
 import { DatePipe } from '@angular/common';
-import { ProjectForm } from '../../components/project-form/project-form';
+import { FormsModule } from '@angular/forms';
+import { ProjectFormFields } from '../../components/project-form-fields/project-form-fields';
 
 @Component({
   selector: 'app-project-detail',
-  imports: [LoadingSpinner, DatePipe, ProjectForm],
+  imports: [LoadingSpinner, DatePipe, ProjectFormFields, FormsModule],
   templateUrl: './project-detail.html',
   styleUrl: './project-detail.css',
 })

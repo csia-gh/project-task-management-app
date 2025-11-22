@@ -1,37 +1,68 @@
-import { Component, Input } from '@angular/core';
+import {
+  Component,
+  Input,
+  OnInit,
+  ElementRef,
+  OnDestroy,
+  inject,
+  signal,
+  effect,
+} from '@angular/core';
+import { ModalService } from '../../services/modal.service';
 
 @Component({
   selector: 'app-modal',
   imports: [],
   templateUrl: './modal.html',
 })
-export class Modal {
-  @Input({ required: true }) modalId!: string;
+export class Modal implements OnInit, OnDestroy {
+  @Input({ required: true }) modalID!: string;
 
-  open() {
-    const modalElement = document.getElementById(this.modalId);
-    if (!modalElement) return;
+  public modalService = inject(ModalService);
+  private el = inject(ElementRef);
 
-    const modal = new (window as any).bootstrap.Modal(modalElement);
-    modalElement.addEventListener('hidden.bs.modal', this.handleModalHidden, { once: true });
-    modal.show();
+  isDisplayed = signal(false);
+  isShow = signal(false);
+
+  constructor() {
+    effect(() => {
+      const shouldBeOpen = this.modalService.isOpenSignal(this.modalID)();
+
+      if (shouldBeOpen) {
+        this.openWithAnimation();
+      } else {
+        this.closeWithAnimation();
+      }
+    });
   }
 
-  close() {
-    const modalElement = document.getElementById(this.modalId);
-    const modal = (window as any).bootstrap.Modal.getInstance(modalElement);
-    if (modal) {
-      (document.activeElement as HTMLElement)?.blur();
-      modal.hide();
+  ngOnInit(): void {
+    document.body.appendChild(this.el.nativeElement);
+  }
+
+  ngOnDestroy() {
+    if (this.el.nativeElement.parentNode) {
+      document.body.removeChild(this.el.nativeElement);
     }
   }
 
-  private handleModalHidden = () => {
-    const backdrops = document.querySelectorAll('.modal-backdrop');
-    backdrops.forEach((backdrop) => backdrop.remove());
+  closeModal() {
+    this.modalService.close(this.modalID);
+  }
 
-    document.body.classList.remove('modal-open');
-    document.body.style.overflow = '';
-    document.body.style.paddingRight = '';
-  };
+  private openWithAnimation() {
+    this.isDisplayed.set(true);
+
+    setTimeout(() => {
+      this.isShow.set(true);
+    }, 50);
+  }
+
+  private closeWithAnimation() {
+    this.isShow.set(false);
+
+    setTimeout(() => {
+      this.isDisplayed.set(false);
+    }, 300);
+  }
 }

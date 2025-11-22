@@ -1,0 +1,29 @@
+<div class="mb-3">
+  <label for="projectName" class="form-label">
+    Project Name <span class="text-danger">*</span>
+  </label>
+  <input
+    type="text"
+    class="form-control"
+    id="projectName"
+    name="name"
+    [(ngModel)]="formData.name"
+    required
+    maxlength="100"
+    #nameInput="ngModel"
+    [class.is-invalid]="nameInput.invalid && nameInput.touched"
+  />
+  @if (nameInput.invalid && nameInput.touched) {
+  <div class="invalid-feedback d-block">Project name is required (max 100 characters)</div>
+  }
+</div>
+<div class="mb-3">
+  <label for="projectDescription" class="form-label">Description</label>
+  <textarea
+    class="form-control"
+    id="projectDescription"
+    name="description"
+    [(ngModel)]="formData.description"
+    rows="3"
+  ></textarea>
+</div>

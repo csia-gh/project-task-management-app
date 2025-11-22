@@ -1,16 +1,19 @@
-<app-modal modalId="projectModal" #modal>
-  <div class="modal-header">
-    <h5 class="modal-title">Create New Project</h5>
-    <button type="button" class="btn-close" (click)="onCancel()"></button>
-  </div>
-  <div class="modal-body">
-    @if (isOpen()) {
-    <app-project-form [formData]="projectForm"></app-project-form>
-    }
-  </div>
+<app-modal modalID="createProject">
+  <span heading>Create New Project</span>
+
+  <form #projectFormElement="ngForm">
+    <app-project-form-fields [formData]="projectForm" />
+  </form>
+
   <div class="modal-footer">
     <button type="button" class="btn btn-secondary" (click)="onCancel()">Cancel</button>
-    <button type="button" class="btn btn-primary" (click)="onSubmit()" [disabled]="!canSubmit">
+
+    <button
+      type="button"
+      class="btn btn-primary"
+      (click)="onSubmit()"
+      [disabled]="projectFormElement.invalid"
+    >
       Create Project
     </button>
   </div>

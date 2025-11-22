@@ -36,7 +36,9 @@
     </div>
     } @else {
     <!-- Edit Mode -->
-    <app-project-form [formData]="projectForm"></app-project-form>
+    <form #editForm="ngForm" (ngSubmit)="saveProject()">
+      <app-project-form-fields [formData]="projectForm" />
+    </form>
     <div class="text-muted small mt-3">
       <strong>Created:</strong> {{ project()!.createdAt | date : 'mediumDate' }}
     </div>
