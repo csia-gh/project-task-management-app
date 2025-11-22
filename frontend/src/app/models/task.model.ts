@@ -14,7 +14,6 @@ export interface CreateTaskDto {
   projectId: string;
   title: string;
   description?: string;
-  status: TaskStatus;
   dueDate?: string;
 }
 

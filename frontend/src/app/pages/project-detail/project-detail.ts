@@ -2,15 +2,20 @@ import { Component, inject, OnInit, signal } from '@angular/core';
 import { Title } from '@angular/platform-browser';
 import { ActivatedRoute } from '@angular/router';
 import { ToastrService } from 'ngx-toastr';
+import { CreateTaskModal } from '../../components/create-task-modal/create-task-modal';
 import { LoadingSpinner } from '../../components/loading-spinner/loading-spinner';
 import { ProjectDataCard } from '../../components/project-data-card/project-data-card';
-import { CreateAndUpdateProjectDto, Project, ProjectDetailModel } from '../../models/project.model';
-import { ProjectService } from '../../services/project.service';
 import { ProjectTasksContainer } from '../../components/project-tasks-container/project-tasks-container';
+import { ModalIds } from '../../constants/modal-ids.constant';
+import { CreateAndUpdateProjectDto, ProjectDetailModel } from '../../models/project.model';
+import { CreateTaskDto, TaskItem } from '../../models/task.model';
+import { ModalService } from '../../services/modal.service';
+import { ProjectService } from '../../services/project.service';
+import { TaskService } from './../../services/task.service';
 
 @Component({
   selector: 'app-project-detail',
-  imports: [LoadingSpinner, ProjectDataCard, ProjectTasksContainer],
+  imports: [LoadingSpinner, ProjectDataCard, ProjectTasksContainer, CreateTaskModal],
   templateUrl: './project-detail.html',
   styleUrl: './project-detail.css',
 })
@@ -19,6 +24,8 @@ export class ProjectDetail implements OnInit {
   private projectService = inject(ProjectService);
   private toastr = inject(ToastrService);
   private titleService = inject(Title);
+  private taskService = inject(TaskService);
+  private modalService = inject(ModalService);
 
   project = signal<ProjectDetailModel | null>(null);
   isLoading = signal(true);
@@ -106,7 +113,27 @@ export class ProjectDetail implements OnInit {
     this.isEditingProject.set(false);
   }
 
-  onCreateTaskRequest() {
-    console.log('New Task button clicked: Preparing to open modal.');
+  openCreateTaskModal() {
+    if (this.project()) {
+      this.modalService.open(ModalIds.CREATE_TASK);
+    }
+  }
+
+  onCreateTaskConfirmed(dto: CreateTaskDto) {
+    this.taskService.create(dto).subscribe({
+      next: (newTask: TaskItem) => {
+        this.project.update((p) => {
+          if (!p) return null;
+          return {
+            ...p,
+            taskItems: [...(p.taskItems || []), newTask],
+          };
+        });
+        this.toastr.success(`Task '${newTask.title}' created successfully!`, 'Success');
+      },
+      error: (error) => {
+        this.toastr.error(error, 'Error');
+      },
+    });
   }
 }

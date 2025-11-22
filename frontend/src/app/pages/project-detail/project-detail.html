@@ -12,5 +12,7 @@
   (cancelClicked)="cancelEditing()"
 />
 
-<app-project-tasks-container [project]="project()!" (createTaskClicked)="onCreateTaskRequest()" />
+<app-project-tasks-container [project]="project()!" (createTaskClicked)="openCreateTaskModal()" />
 }
+
+<app-create-task-modal [projectId]="project()!.id" (taskCreated)="onCreateTaskConfirmed($event)" />
