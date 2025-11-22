@@ -1,6 +1,7 @@
 import { Component, inject, OnInit, signal } from '@angular/core';
 import { Project } from '../../models/project.model';
 import { ActivatedRoute } from '@angular/router';
+import { Title } from '@angular/platform-browser';
 import { ProjectService } from '../../services/project.service';
 import { ToastrService } from 'ngx-toastr';
 import { LoadingSpinner } from '../../components/loading-spinner/loading-spinner';
@@ -16,6 +17,7 @@ export class ProjectDetail implements OnInit {
   private route = inject(ActivatedRoute);
   private projectService = inject(ProjectService);
   private toastr = inject(ToastrService);
+  private titleService = inject(Title);
 
   project = signal<Project | null>(null);
   isLoading = signal(true);
@@ -38,6 +40,7 @@ export class ProjectDetail implements OnInit {
       next: (data) => {
         this.project.set(data);
         this.isLoading.set(false);
+        this.titleService.setTitle(`${data.name} | Project & Task Manager`);
       },
       error: (error) => {
         this.toastr.error(error, 'Error');
