@@ -1,4 +1,4 @@
-import { Component, computed, OnInit, signal, ViewChild } from '@angular/core';
+import { Component, computed, inject, OnInit, signal, ViewChild } from '@angular/core';
 import { Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { ToastrService } from 'ngx-toastr';
@@ -16,7 +16,12 @@ import { SortColumn, SortDirection } from '../../models/sort.model';
   styleUrl: './project-list.css',
 })
 export class ProjectList implements OnInit {
+  private projectService = inject(ProjectService);
+  private router = inject(Router);
+  private toastr = inject(ToastrService);
+
   @ViewChild(CreateProjectModal) createModal!: CreateProjectModal;
+
   allProjects = signal<Project[]>([]);
   isLoading = signal(true);
 
@@ -45,12 +50,6 @@ export class ProjectList implements OnInit {
 
     return projects;
   });
-
-  constructor(
-    private projectService: ProjectService,
-    private router: Router,
-    private toastr: ToastrService
-  ) {}
 
   ngOnInit() {
     this.loadProjects();

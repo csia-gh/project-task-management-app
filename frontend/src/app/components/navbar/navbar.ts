@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink, RouterLinkActive, Router } from '@angular/router';
 
@@ -9,9 +9,9 @@ import { RouterLink, RouterLinkActive, Router } from '@angular/router';
   styleUrl: './navbar.css',
 })
 export class NavbarComponent implements OnInit {
-  showProjectsLink: boolean = false;
+  private router = inject(Router);
 
-  constructor(private router: Router) {}
+  showProjectsLink: boolean = false;
 
   ngOnInit() {
     this.router.events.subscribe(() => {
