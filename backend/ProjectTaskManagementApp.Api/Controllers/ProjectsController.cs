@@ -132,7 +132,15 @@ namespace ProjectTaskManagementApp.Api.Controllers
                 return NotFound();
             }
 
-            return NoContent();
+            var responseDTO = new ProjectResponseDTO
+            {
+                Id = project.Id,
+                Name = project.Name,
+                Description = project.Description,
+                CreatedAt = project.CreatedAt
+            };
+
+            return Ok(responseDTO);
         }
 
         // POST: api/Projects

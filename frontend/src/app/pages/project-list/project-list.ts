@@ -4,7 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { ToastrService } from 'ngx-toastr';
 import { LoadingSpinner } from '../../components/loading-spinner/loading-spinner';
 import { ProjectTable } from '../../components/project-table/project-table';
-import { CreateProjectDto, Project } from '../../models/project.model';
+import { CreateAndUpdateProjectDto, Project } from '../../models/project.model';
 import { ProjectService } from '../../services/project.service';
 import { CreateProjectModal } from '../../components/create-project-modal/create-project-modal';
 import { SortColumn, SortDirection } from '../../models/sort.model';
@@ -87,7 +87,7 @@ export class ProjectList implements OnInit {
     this.createModal.open();
   }
 
-  onProjectCreated(dto: CreateProjectDto) {
+  onProjectCreated(dto: CreateAndUpdateProjectDto) {
     this.projectService.create(dto).subscribe({
       next: (newProject) => {
         this.allProjects.update((p) => [...p, newProject]);

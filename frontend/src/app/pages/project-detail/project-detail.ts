@@ -1,15 +1,16 @@
 import { Component, inject, OnInit, signal } from '@angular/core';
-import { Project } from '../../models/project.model';
+import { CreateAndUpdateProjectDto, Project } from '../../models/project.model';
 import { ActivatedRoute } from '@angular/router';
 import { Title } from '@angular/platform-browser';
 import { ProjectService } from '../../services/project.service';
 import { ToastrService } from 'ngx-toastr';
 import { LoadingSpinner } from '../../components/loading-spinner/loading-spinner';
 import { DatePipe } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 
 @Component({
   selector: 'app-project-detail',
-  imports: [LoadingSpinner, DatePipe],
+  imports: [LoadingSpinner, DatePipe, FormsModule],
   templateUrl: './project-detail.html',
   styleUrl: './project-detail.css',
 })
@@ -21,6 +22,12 @@ export class ProjectDetail implements OnInit {
 
   project = signal<Project | null>(null);
   isLoading = signal(true);
+  isEditingProject = signal(false);
+
+  projectForm: CreateAndUpdateProjectDto = {
+    name: '',
+    description: '',
+  };
 
   ngOnInit() {
     const projectId = this.route.snapshot.paramMap.get('id');
@@ -47,5 +54,52 @@ export class ProjectDetail implements OnInit {
         this.isLoading.set(false);
       },
     });
+  }
+
+  startEditingProject() {
+    console.log('Edit button clicked!');
+    console.log('Current project:', this.project());
+
+    const proj = this.project();
+    if (proj) {
+      console.log('Setting form values...');
+      this.projectForm = {
+        name: proj.name,
+        description: proj.description || '',
+      };
+      this.isEditingProject.set(true);
+      console.log('isEditingProject:', this.isEditingProject());
+    } else {
+      console.log('No project found!');
+    }
+  }
+
+  saveProject() {
+    const proj = this.project();
+    if (!proj || !this.projectForm.name.trim()) {
+      this.toastr.error('Project name is required!', 'Error');
+      return;
+    }
+
+    const dto: CreateAndUpdateProjectDto = {
+      name: this.projectForm.name.trim(),
+      description: this.projectForm?.description?.trim() || undefined,
+    };
+
+    this.projectService.update(proj.id, dto).subscribe({
+      next: (updatedProject) => {
+        this.project.set(updatedProject);
+        this.isEditingProject.set(false);
+        this.titleService.setTitle(`${updatedProject.name} | Project & Task Manager`);
+        this.toastr.success('Project updated successfully!', 'Success');
+      },
+      error: (error) => {
+        this.toastr.error(error, 'Error');
+      },
+    });
+  }
+
+  cancelEditing() {
+    this.isEditingProject.set(false);
   }
 }

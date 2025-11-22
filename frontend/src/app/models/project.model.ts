@@ -5,12 +5,7 @@ export interface Project {
   createdAt: Date | string;
 }
 
-export interface CreateProjectDto {
-  name: string;
-  description?: string;
-}
-
-export interface UpdateProjectDto {
+export interface CreateAndUpdateProjectDto {
   name: string;
   description?: string;
 }

@@ -1,6 +1,6 @@
 import { Component, EventEmitter, Output, ViewChild } from '@angular/core';
 import { FormsModule, NgForm } from '@angular/forms';
-import { CreateProjectDto } from '../../models/project.model';
+import { CreateAndUpdateProjectDto } from '../../models/project.model';
 
 @Component({
   selector: 'app-create-project-modal',
@@ -8,10 +8,10 @@ import { CreateProjectDto } from '../../models/project.model';
   templateUrl: './create-project-modal.html',
 })
 export class CreateProjectModal {
-  @Output() projectCreated = new EventEmitter<CreateProjectDto>();
+  @Output() projectCreated = new EventEmitter<CreateAndUpdateProjectDto>();
   @ViewChild('projectFormElement') form!: NgForm;
 
-  projectForm: CreateProjectDto = {
+  projectForm: CreateAndUpdateProjectDto = {
     name: '',
     description: '',
   };
