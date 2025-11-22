@@ -14,8 +14,17 @@
   [sortDirection]="sortDirection()"
   (sort)="onSort($event)"
   (viewDetails)="viewProjectDetails($event)"
-  (deleteProject)="deleteProject($event)"
+  (deleteProject)="initiateDelete($event)"
 />
 }
 
 <app-create-project-modal (projectCreated)="onProjectCreated($event)" />
+
+<app-confirmation-modal
+  [modalID]="ModalIds.DELETE_PROJECT"
+  title="Delete Project"
+  [message]="deleteMessage()"
+  confirmButtonText="Yes, Delete"
+  confirmButtonClass="btn-danger"
+  (confirmed)="onDeleteConfirmed()"
+/>

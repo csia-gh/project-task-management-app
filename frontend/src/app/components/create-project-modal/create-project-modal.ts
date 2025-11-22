@@ -4,6 +4,7 @@ import { ModalService } from '../../services/modal.service';
 import { Modal } from '../modal/modal';
 import { FormsModule, NgForm } from '@angular/forms';
 import { ProjectFormFields } from '../project-form-fields/project-form-fields';
+import { ModalIds } from '../../constants/modal-ids.constant';
 
 @Component({
   selector: 'app-create-project-modal',
@@ -14,6 +15,7 @@ export class CreateProjectModal {
   @Output() projectCreated = new EventEmitter<CreateAndUpdateProjectDto>();
 
   private modalService = inject(ModalService);
+  protected readonly ModalIds = ModalIds;
 
   @ViewChild('projectFormElement') form?: NgForm;
 
@@ -29,13 +31,13 @@ export class CreateProjectModal {
   onSubmit() {
     if (this.canSubmit) {
       this.projectCreated.emit({ ...this.projectForm });
-      this.modalService.close('createProject');
+      this.modalService.close(this.ModalIds.CREATE_PROJECT);
       this.resetForm();
     }
   }
 
   onCancel() {
-    this.modalService.close('createProject');
+    this.modalService.close(this.ModalIds.CREATE_PROJECT);
     this.resetForm();
   }
 
