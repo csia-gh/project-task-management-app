@@ -1,56 +1,17 @@
-<div class="modal fade" id="projectModal" tabindex="-1">
-  <div class="modal-dialog">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title">Create New Project</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-      </div>
-      <div class="modal-body">
-        <form #projectFormElement="ngForm">
-          <div class="mb-3">
-            <label for="projectName" class="form-label">
-              Project Name <span class="text-danger">*</span>
-            </label>
-            <input
-              type="text"
-              class="form-control"
-              id="projectName"
-              name="name"
-              [(ngModel)]="projectForm.name"
-              required
-              maxlength="100"
-              #nameInput="ngModel"
-              [class.is-invalid]="nameInput.invalid && nameInput.touched"
-            />
-            @if (nameInput.invalid && nameInput.touched) {
-            <div class="invalid-feedback d-block">
-              Project name is required (max 100 characters)
-            </div>
-            }
-          </div>
-          <div class="mb-3">
-            <label for="projectDescription" class="form-label">Description</label>
-            <textarea
-              class="form-control"
-              id="projectDescription"
-              name="description"
-              [(ngModel)]="projectForm.description"
-              rows="3"
-            ></textarea>
-          </div>
-        </form>
-      </div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" (click)="closeModal()">Cancel</button>
-        <button
-          type="button"
-          class="btn btn-primary"
-          (click)="onSubmit()"
-          [disabled]="!projectForm.name || !projectForm.name.trim()"
-        >
-          Create Project
-        </button>
-      </div>
-    </div>
+<app-modal modalId="projectModal" #modal>
+  <div class="modal-header">
+    <h5 class="modal-title">Create New Project</h5>
+    <button type="button" class="btn-close" (click)="onCancel()"></button>
   </div>
-</div>
+  <div class="modal-body">
+    @if (isOpen()) {
+    <app-project-form [formData]="projectForm"></app-project-form>
+    }
+  </div>
+  <div class="modal-footer">
+    <button type="button" class="btn btn-secondary" (click)="onCancel()">Cancel</button>
+    <button type="button" class="btn btn-primary" (click)="onSubmit()" [disabled]="!canSubmit">
+      Create Project
+    </button>
+  </div>
+</app-modal>

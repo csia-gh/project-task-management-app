@@ -12,7 +12,7 @@
     } @else {
     <h3 class="mb-0">Edit Project</h3>
     <div>
-      <button class="btn btn-sm btn-success me-2" (click)="saveProject()">
+      <button class="btn btn-sm btn-success me-2" (click)="saveProject()" [disabled]="!canSave">
         <i class="bi bi-check-lg"></i> Save
       </button>
       <button class="btn btn-sm btn-secondary" (click)="cancelEditing()">
@@ -36,48 +36,15 @@
     </div>
     } @else {
     <!-- Edit Mode -->
-    <form #projectFormElement="ngForm">
-      <div class="mb-3">
-        <label for="projectName" class="form-label">
-          Project Name <span class="text-danger">*</span>
-        </label>
-        <input
-          type="text"
-          class="form-control"
-          id="projectName"
-          name="name"
-          [(ngModel)]="projectForm.name"
-          required
-          maxlength="100"
-          #nameInput="ngModel"
-          [class.is-invalid]="nameInput.invalid && nameInput.touched"
-        />
-        @if (nameInput.invalid && nameInput.touched) {
-        <div class="invalid-feedback d-block">
-          @if (nameInput.errors?.['required']) { Project name is required. }
-        </div>
-        }
-      </div>
-
-      <div class="mb-3">
-        <label for="projectDescription" class="form-label">Description</label>
-        <textarea
-          class="form-control"
-          id="projectDescription"
-          name="description"
-          [(ngModel)]="projectForm.description"
-          rows="3"
-        ></textarea>
-      </div>
-
-      <div class="text-muted small">
-        <strong>Created:</strong> {{ project()!.createdAt | date : 'mediumDate' }}
-      </div>
-    </form>
+    <app-project-form [formData]="projectForm"></app-project-form>
+    <div class="text-muted small mt-3">
+      <strong>Created:</strong> {{ project()!.createdAt | date : 'mediumDate' }}
+    </div>
     }
   </div>
 </div>
 
+<!-- Tasks Card -->
 <div class="card shadow-sm mt-4">
   <div class="card-header bg-light border-bottom d-flex justify-content-between align-items-center">
     <h5 class="mb-0">Tasks <span class="badge bg-secondary ms-2">0</span></h5>

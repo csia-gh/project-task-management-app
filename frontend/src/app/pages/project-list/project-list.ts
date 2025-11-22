@@ -1,17 +1,16 @@
 import { Component, computed, inject, OnInit, signal, ViewChild } from '@angular/core';
 import { Router } from '@angular/router';
-import { FormsModule } from '@angular/forms';
 import { ToastrService } from 'ngx-toastr';
+import { CreateProjectModal } from '../../components/create-project-modal/create-project-modal';
 import { LoadingSpinner } from '../../components/loading-spinner/loading-spinner';
 import { ProjectTable } from '../../components/project-table/project-table';
 import { CreateAndUpdateProjectDto, Project } from '../../models/project.model';
-import { ProjectService } from '../../services/project.service';
-import { CreateProjectModal } from '../../components/create-project-modal/create-project-modal';
 import { SortColumn, SortDirection } from '../../models/sort.model';
+import { ProjectService } from '../../services/project.service';
 
 @Component({
   selector: 'app-project-list',
-  imports: [LoadingSpinner, ProjectTable, FormsModule, CreateProjectModal],
+  imports: [LoadingSpinner, ProjectTable, CreateProjectModal],
   templateUrl: './project-list.html',
   styleUrl: './project-list.css',
 })
@@ -92,10 +91,6 @@ export class ProjectList implements OnInit {
       next: (newProject) => {
         this.allProjects.update((p) => [...p, newProject]);
         this.toastr.success('Project created successfully!', 'Success');
-
-        const modal = document.getElementById('projectModal');
-        const bsModal = (window as any).bootstrap.Modal.getInstance(modal);
-        bsModal?.hide();
       },
       error: (error) => {
         this.toastr.error(error, 'Error');

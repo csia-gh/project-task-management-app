@@ -1,60 +1,48 @@
-import { Component, EventEmitter, Output, ViewChild } from '@angular/core';
-import { FormsModule, NgForm } from '@angular/forms';
+import { Component, EventEmitter, Output, signal, ViewChild } from '@angular/core';
 import { CreateAndUpdateProjectDto } from '../../models/project.model';
+import { Modal } from '../modal/modal';
+import { ProjectForm } from '../project-form/project-form';
 
 @Component({
   selector: 'app-create-project-modal',
-  imports: [FormsModule],
+  imports: [Modal, ProjectForm],
   templateUrl: './create-project-modal.html',
 })
 export class CreateProjectModal {
   @Output() projectCreated = new EventEmitter<CreateAndUpdateProjectDto>();
-  @ViewChild('projectFormElement') form!: NgForm;
+  @ViewChild('modal') modal!: Modal;
 
   projectForm: CreateAndUpdateProjectDto = {
     name: '',
     description: '',
   };
 
+  isOpen = signal(false);
+
+  get canSubmit(): boolean {
+    return !!this.projectForm.name?.trim();
+  }
+
   open() {
-    this.resetForm();
-    const modalElement = document.getElementById('projectModal');
-    if (!modalElement) return;
-
-    const modal = new (window as any).bootstrap.Modal(modalElement);
-
-    modalElement.addEventListener('hidden.bs.modal', this.handleModalHidden, { once: true });
-
-    modal.show();
+    this.isOpen.set(true);
+    this.modal.open();
   }
 
-  private handleModalHidden = () => {
-    const backdrops = document.querySelectorAll('.modal-backdrop');
-    backdrops.forEach((backdrop) => backdrop.remove());
-
-    document.body.classList.remove('modal-open');
-    document.body.style.overflow = '';
-    document.body.style.paddingRight = '';
-  };
-
-  closeModal() {
-    const modalElement = document.getElementById('projectModal');
-    const modal = (window as any).bootstrap.Modal.getInstance(modalElement);
-    if (modal) {
-      modal.hide();
-    }
-  }
-
-  onSubmit() {
-    if (this.form.valid && this.projectForm.name.trim()) {
+  onSubmit(): void {
+    if (this.canSubmit) {
       this.projectCreated.emit({ ...this.projectForm });
-      this.closeModal();
+      this.modal.close();
       this.resetForm();
     }
   }
 
-  resetForm(): void {
+  onCancel(): void {
+    this.modal.close();
+    this.resetForm();
+  }
+
+  private resetForm(): void {
     this.projectForm = { name: '', description: '' };
-    this.form?.resetForm();
+    this.isOpen.set(false);
   }
 }

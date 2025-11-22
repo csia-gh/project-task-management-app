@@ -6,11 +6,11 @@ import { ProjectService } from '../../services/project.service';
 import { ToastrService } from 'ngx-toastr';
 import { LoadingSpinner } from '../../components/loading-spinner/loading-spinner';
 import { DatePipe } from '@angular/common';
-import { FormsModule } from '@angular/forms';
+import { ProjectForm } from '../../components/project-form/project-form';
 
 @Component({
   selector: 'app-project-detail',
-  imports: [LoadingSpinner, DatePipe, FormsModule],
+  imports: [LoadingSpinner, DatePipe, ProjectForm],
   templateUrl: './project-detail.html',
   styleUrl: './project-detail.css',
 })
@@ -29,9 +29,12 @@ export class ProjectDetail implements OnInit {
     description: '',
   };
 
+  get canSave(): boolean {
+    return !!this.projectForm.name?.trim();
+  }
+
   ngOnInit() {
     const projectId = this.route.snapshot.paramMap.get('id');
-
     if (projectId) {
       this.loadProject(projectId);
     } else {
@@ -42,7 +45,6 @@ export class ProjectDetail implements OnInit {
 
   loadProject(projectId: string) {
     this.isLoading.set(true);
-
     this.projectService.getById(projectId).subscribe({
       next: (data) => {
         this.project.set(data);
@@ -57,33 +59,27 @@ export class ProjectDetail implements OnInit {
   }
 
   startEditingProject() {
-    console.log('Edit button clicked!');
-    console.log('Current project:', this.project());
-
     const proj = this.project();
     if (proj) {
-      console.log('Setting form values...');
       this.projectForm = {
         name: proj.name,
         description: proj.description || '',
       };
       this.isEditingProject.set(true);
-      console.log('isEditingProject:', this.isEditingProject());
-    } else {
-      console.log('No project found!');
     }
   }
 
   saveProject() {
     const proj = this.project();
-    if (!proj || !this.projectForm.name.trim()) {
+
+    if (!proj || !this.canSave) {
       this.toastr.error('Project name is required!', 'Error');
       return;
     }
 
     const dto: CreateAndUpdateProjectDto = {
       name: this.projectForm.name.trim(),
-      description: this.projectForm?.description?.trim() || undefined,
+      description: this.projectForm.description?.trim() || undefined,
     };
 
     this.projectService.update(proj.id, dto).subscribe({
