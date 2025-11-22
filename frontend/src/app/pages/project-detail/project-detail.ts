@@ -1,17 +1,16 @@
 import { Component, inject, OnInit, signal } from '@angular/core';
-import { CreateAndUpdateProjectDto, Project } from '../../models/project.model';
-import { ActivatedRoute } from '@angular/router';
 import { Title } from '@angular/platform-browser';
-import { ProjectService } from '../../services/project.service';
+import { ActivatedRoute } from '@angular/router';
 import { ToastrService } from 'ngx-toastr';
 import { LoadingSpinner } from '../../components/loading-spinner/loading-spinner';
-import { DatePipe } from '@angular/common';
-import { FormsModule } from '@angular/forms';
-import { ProjectFormFields } from '../../components/project-form-fields/project-form-fields';
+import { ProjectDataCard } from '../../components/project-data-card/project-data-card';
+import { CreateAndUpdateProjectDto, Project, ProjectDetailModel } from '../../models/project.model';
+import { ProjectService } from '../../services/project.service';
+import { ProjectTasksContainer } from '../../components/project-tasks-container/project-tasks-container';
 
 @Component({
   selector: 'app-project-detail',
-  imports: [LoadingSpinner, DatePipe, ProjectFormFields, FormsModule],
+  imports: [LoadingSpinner, ProjectDataCard, ProjectTasksContainer],
   templateUrl: './project-detail.html',
   styleUrl: './project-detail.css',
 })
@@ -21,7 +20,7 @@ export class ProjectDetail implements OnInit {
   private toastr = inject(ToastrService);
   private titleService = inject(Title);
 
-  project = signal<Project | null>(null);
+  project = signal<ProjectDetailModel | null>(null);
   isLoading = signal(true);
   isEditingProject = signal(false);
 
@@ -85,7 +84,14 @@ export class ProjectDetail implements OnInit {
 
     this.projectService.update(proj.id, dto).subscribe({
       next: (updatedProject) => {
-        this.project.set(updatedProject);
+        this.project.update((currentProject) => {
+          if (!currentProject) return null;
+
+          return {
+            ...currentProject,
+            ...updatedProject,
+          };
+        });
         this.isEditingProject.set(false);
         this.titleService.setTitle(`${updatedProject.name} | Project & Task Manager`);
         this.toastr.success('Project updated successfully!', 'Success');
@@ -98,5 +104,9 @@ export class ProjectDetail implements OnInit {
 
   cancelEditing() {
     this.isEditingProject.set(false);
+  }
+
+  onCreateTaskRequest() {
+    console.log('New Task button clicked: Preparing to open modal.');
   }
 }

@@ -4,7 +4,6 @@ import { catchError } from 'rxjs/operators';
 
 export abstract class BaseService<T> {
   protected readonly baseUrl = '/api';
-  // protected readonly baseUrl = 'https://localhost:7140/api';
 
   protected get httpOptions() {
     return {
@@ -51,7 +50,7 @@ export abstract class BaseService<T> {
       .pipe(catchError(this.handleError));
   }
 
-  private handleError(error: HttpErrorResponse): Observable<never> {
+  protected handleError(error: HttpErrorResponse): Observable<never> {
     let errorMessage = 'An unknown error occurred!';
 
     if (error.error instanceof ErrorEvent) {
