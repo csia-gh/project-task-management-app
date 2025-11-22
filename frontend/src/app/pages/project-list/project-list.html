@@ -14,7 +14,10 @@
 <app-loading-spinner />
 } @if (!isLoading()) {
 <app-project-table
-  [projects]="projects()"
+  [projects]="sortedProjects()"
+  [sortColumn]="sortColumn()"
+  [sortDirection]="sortDirection()"
+  (sort)="onSort($event)"
   (viewDetails)="viewProjectDetails($event)"
   (deleteProject)="deleteProject($event)"
 />

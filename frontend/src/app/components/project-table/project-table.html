@@ -4,10 +4,24 @@
       <table class="table table-hover align-middle">
         <thead class="table-light">
           <tr>
-            <th>Name</th>
-            <th>Description</th>
-            <th>Created At</th>
-            <th class="text-end">Actions</th>
+            <th scope="col" class="sortable" (click)="onSort(SortColumn.Name)">
+              Name @if (sortColumn === SortColumn.Name) {
+              <i
+                class="bi ms-1"
+                [ngClass]="sortDirection === SortDirection.Asc ? 'bi-arrow-up' : 'bi-arrow-down'"
+              ></i>
+              }
+            </th>
+            <th scope="col">Description</th>
+            <th scope="col" class="sortable" (click)="onSort(SortColumn.CreatedAt)">
+              Created At @if (sortColumn === SortColumn.CreatedAt) {
+              <i
+                class="bi ms-1"
+                [ngClass]="sortDirection === SortDirection.Asc ? 'bi-arrow-up' : 'bi-arrow-down'"
+              ></i>
+              }
+            </th>
+            <th scope="col" class="text-end">Actions</th>
           </tr>
         </thead>
         <tbody>
@@ -33,7 +47,7 @@
               </span>
             </td>
             <td>
-              {{ formatDate(project.createdAt) }}
+              {{ project.createdAt | date : 'short' }}
             </td>
             <td class="text-end">
               <span class="d-flex justify-content-end">

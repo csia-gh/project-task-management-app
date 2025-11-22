@@ -1,4 +1,4 @@
-import { Component, OnInit, signal, ViewChild } from '@angular/core';
+import { Component, computed, OnInit, signal, ViewChild } from '@angular/core';
 import { Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { ToastrService } from 'ngx-toastr';
@@ -7,6 +7,7 @@ import { ProjectTable } from '../../components/project-table/project-table';
 import { CreateProjectDto, Project } from '../../models/project.model';
 import { ProjectService } from '../../services/project.service';
 import { CreateProjectModal } from '../../components/create-project-modal/create-project-modal';
+import { SortColumn, SortDirection } from '../../models/sort.model';
 
 @Component({
   selector: 'app-project-list',
@@ -16,13 +17,34 @@ import { CreateProjectModal } from '../../components/create-project-modal/create
 })
 export class ProjectList implements OnInit {
   @ViewChild(CreateProjectModal) createModal!: CreateProjectModal;
-  projects = signal<Project[]>([]);
+  allProjects = signal<Project[]>([]);
   isLoading = signal(true);
 
-  projectForm = {
-    name: '',
-    description: '',
-  };
+  sortColumn = signal<SortColumn>(SortColumn.Name);
+  sortDirection = signal<SortDirection>(SortDirection.Asc);
+
+  sortedProjects = computed(() => {
+    const projects = [...this.allProjects()];
+    const column = this.sortColumn();
+    const direction = this.sortDirection();
+
+    projects.sort((a, b) => {
+      let comparison = 0;
+
+      if (column === SortColumn.Name) {
+        comparison = a.name.localeCompare(b.name);
+      } else {
+        // createdAt
+        const dateA = new Date(a.createdAt).getTime();
+        const dateB = new Date(b.createdAt).getTime();
+        comparison = dateA - dateB;
+      }
+
+      return direction === SortDirection.Asc ? comparison : -comparison;
+    });
+
+    return projects;
+  });
 
   constructor(
     private projectService: ProjectService,
@@ -30,16 +52,16 @@ export class ProjectList implements OnInit {
     private toastr: ToastrService
   ) {}
 
-  ngOnInit(): void {
+  ngOnInit() {
     this.loadProjects();
   }
 
-  loadProjects(): void {
+  loadProjects() {
     this.isLoading.set(true);
 
     this.projectService.getAll().subscribe({
       next: (data) => {
-        this.projects.set(data);
+        this.allProjects.set(data);
         this.isLoading.set(false);
       },
       error: (error) => {
@@ -49,14 +71,27 @@ export class ProjectList implements OnInit {
     });
   }
 
-  openCreateModal(): void {
+  onSort(column: SortColumn) {
+    if (this.sortColumn() === column) {
+      // Toggle direction
+      this.sortDirection.set(
+        this.sortDirection() === SortDirection.Asc ? SortDirection.Desc : SortDirection.Asc
+      );
+    } else {
+      // New column, default to asc
+      this.sortColumn.set(column);
+      this.sortDirection.set(SortDirection.Asc);
+    }
+  }
+
+  openCreateModal() {
     this.createModal.open();
   }
 
-  onProjectCreated(dto: CreateProjectDto): void {
+  onProjectCreated(dto: CreateProjectDto) {
     this.projectService.create(dto).subscribe({
       next: (newProject) => {
-        this.projects.update((p) => [...p, newProject]);
+        this.allProjects.update((p) => [...p, newProject]);
         this.toastr.success('Project created successfully!', 'Success');
 
         const modal = document.getElementById('projectModal');
@@ -69,11 +104,11 @@ export class ProjectList implements OnInit {
     });
   }
 
-  deleteProject(project: Project): void {
+  deleteProject(project: Project) {
     if (confirm(`Are you sure you want to delete project "${project.name}"?`)) {
       this.projectService.delete(project.id).subscribe({
         next: () => {
-          this.projects.update((p) => p.filter((pr) => pr.id !== project.id));
+          this.allProjects.update((p) => p.filter((pr) => pr.id !== project.id));
           this.toastr.success('Project deleted successfully!', 'Success');
         },
         error: (error) => {
@@ -83,7 +118,7 @@ export class ProjectList implements OnInit {
     }
   }
 
-  viewProjectDetails(projectId: string): void {
+  viewProjectDetails(projectId: string) {
     this.router.navigate(['/projects', projectId]);
   }
 }
