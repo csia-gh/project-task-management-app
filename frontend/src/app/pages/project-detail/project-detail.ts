@@ -1,5 +1,4 @@
-import { Component, inject, OnInit, signal } from '@angular/core';
-import { Title } from '@angular/platform-browser';
+import { Component, inject, OnInit } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { ToastrService } from 'ngx-toastr';
 import { CreateTaskModal } from '../../components/create-task-modal/create-task-modal';
@@ -7,12 +6,11 @@ import { LoadingSpinner } from '../../components/loading-spinner/loading-spinner
 import { ProjectDataCard } from '../../components/project-data-card/project-data-card';
 import { ProjectTasksContainer } from '../../components/project-tasks-container/project-tasks-container';
 import { ModalIds } from '../../constants/modal-ids.constant';
-import { CreateAndUpdateProjectDto, ProjectDetailModel } from '../../models/project.model';
+import { CreateAndUpdateProjectDto } from '../../models/project.model';
 import { CreateTaskDto, TaskItem, UpdateTaskDto } from '../../models/task.model';
-import { ModalService } from '../../services/modal.service';
-import { ProjectService } from '../../services/project.service';
-import { TaskService } from './../../services/task.service';
 import { ConfirmationModal } from '../../components/confirmation-modal/confirmation-modal';
+import { ProjectDetailFacade } from './project-detail.facade';
+import { EditStateService } from '../../services/edit-state.service';
 
 @Component({
   selector: 'app-project-detail',
@@ -23,24 +21,22 @@ import { ConfirmationModal } from '../../components/confirmation-modal/confirmat
     CreateTaskModal,
     ConfirmationModal,
   ],
+  providers: [ProjectDetailFacade, EditStateService],
   templateUrl: './project-detail.html',
-  styleUrl: './project-detail.css',
 })
 export class ProjectDetail implements OnInit {
-  private route = inject(ActivatedRoute);
-  private projectService = inject(ProjectService);
-  private toastr = inject(ToastrService);
-  private titleService = inject(Title);
-  private taskService = inject(TaskService);
-  private modalService = inject(ModalService);
+  private readonly route = inject(ActivatedRoute);
+  private readonly toastr = inject(ToastrService);
+  private readonly facade = inject(ProjectDetailFacade);
 
-  project = signal<ProjectDetailModel | null>(null);
-  isLoading = signal(true);
-  isEditingProject = signal(false);
-  taskToEdit = signal<TaskItem | null>(null);
-  taskToDelete = signal<TaskItem | null>(null);
+  readonly project = this.facade.project;
+  readonly isLoading = this.facade.isLoading;
+  readonly isEditingProject = this.facade.isEditingProject;
+  readonly tasks = this.facade.tasks;
+
   protected readonly ModalIds = ModalIds;
 
+  // Local UI state (form data)
   projectForm: CreateAndUpdateProjectDto = {
     name: '',
     description: '',
@@ -50,31 +46,17 @@ export class ProjectDetail implements OnInit {
     return !!this.projectForm.name?.trim();
   }
 
-  ngOnInit() {
+  ngOnInit(): void {
     const projectId = this.route.snapshot.paramMap.get('id');
+
     if (projectId) {
-      this.loadProject(projectId);
+      this.facade.loadProject(projectId);
     } else {
       this.toastr.error('Project ID not found!', 'Error');
-      this.isLoading.set(false);
     }
   }
 
-  loadProject(projectId: string) {
-    this.isLoading.set(true);
-    this.projectService.getById(projectId).subscribe({
-      next: (data) => {
-        this.project.set(data);
-        this.isLoading.set(false);
-        this.titleService.setTitle(`${data.name} | Project & Task Manager`);
-      },
-      error: (error) => {
-        this.toastr.error(error, 'Error');
-        this.isLoading.set(false);
-      },
-    });
-  }
-
+  // project actions
   startEditingProject() {
     const proj = this.project();
     if (proj) {
@@ -82,124 +64,50 @@ export class ProjectDetail implements OnInit {
         name: proj.name,
         description: proj.description || '',
       };
-      this.isEditingProject.set(true);
+      this.facade.startEditingProject();
     }
   }
 
   saveProject() {
-    const proj = this.project();
-
-    if (!proj || !this.canSave) {
-      this.toastr.error('Project name is required!', 'Error');
-      return;
+    if (this.canSave) {
+      this.facade.saveProject(this.projectForm);
     }
-
-    const dto: CreateAndUpdateProjectDto = {
-      name: this.projectForm.name.trim(),
-      description: this.projectForm.description?.trim() || undefined,
-    };
-
-    this.projectService.update(proj.id, dto).subscribe({
-      next: (updatedProject) => {
-        this.project.update((currentProject) => {
-          if (!currentProject) return null;
-
-          return {
-            ...currentProject,
-            ...updatedProject,
-          };
-        });
-        this.isEditingProject.set(false);
-        this.titleService.setTitle(`${updatedProject.name} | Project & Task Manager`);
-        this.toastr.success('Project updated successfully!', 'Success');
-      },
-      error: (error) => {
-        this.toastr.error(error, 'Error');
-      },
-    });
   }
 
   cancelEditing() {
-    this.isEditingProject.set(false);
+    this.facade.cancelEditingProject();
   }
 
+  // task actions
   openCreateTaskModal() {
-    if (this.project()) {
-      this.modalService.open(ModalIds.CREATE_TASK);
-    }
+    this.facade.openCreateTaskModal();
   }
 
   onCreateTaskConfirmed(dto: CreateTaskDto) {
-    this.taskService.create(dto).subscribe({
-      next: (newTask: TaskItem) => {
-        this.project.update((p) => {
-          if (!p) return null;
-          return {
-            ...p,
-            taskItems: [...(p.taskItems || []), newTask],
-          };
-        });
-        this.toastr.success(`Task '${newTask.title}' created successfully!`, 'Success');
-      },
-      error: (error) => {
-        this.toastr.error(error, 'Error');
-      },
-    });
+    this.facade.createTask(dto);
   }
 
   onDeleteTaskRequest(task: TaskItem) {
-    this.taskToDelete.set(task);
-    this.modalService.open(this.ModalIds.DELETE_TASK_CONFIRMATION);
+    this.facade.requestDeleteTask(task);
   }
 
   onDeleteTaskConfirmed() {
-    const task = this.taskToDelete();
-
-    if (!task || !this.project()) return;
-
-    this.taskService.delete(task.id).subscribe({
-      next: () => {
-        this.project.update((p) => {
-          if (!p) return null;
-          return {
-            ...p,
-            taskItems: p.taskItems.filter((t) => t.id !== task.id),
-          };
-        });
-        this.toastr.success(`Task '${task.title}' deleted successfully!`, 'Success');
-        this.taskToDelete.set(null);
-      },
-      error: (error) => {
-        this.toastr.error(error, 'Error');
-        this.taskToDelete.set(null);
-      },
-    });
+    this.facade.confirmDeleteTask();
   }
 
-  onTaskUpdated(event: { taskId: string; dto: UpdateTaskDto }) {
-    this.taskService.update(event.taskId, event.dto).subscribe({
-      next: (serverResponse: TaskItem) => {
-        this.project.update((currentProject) => {
-          if (!currentProject) return null;
-
-          return {
-            ...currentProject,
-            taskItems: currentProject.taskItems.map((t) =>
-              t.id === serverResponse.id ? serverResponse : t
-            ),
-          };
-        });
-
-        this.toastr.success(`Task updated!`, 'Success');
-      },
-      error: (error) => {
-        this.toastr.error(error, 'Error');
-      },
-    });
+  onTaskEditStarted(taskId: string) {
+    this.facade.startEditingTask(taskId);
   }
 
-  deleteTaskMessage = () => {
-    const taskTitle = this.taskToDelete()?.title;
-    return `Are you sure you want to delete task '${taskTitle}'?`;
+  onTaskSaved(event: { taskId: string; dto: UpdateTaskDto }) {
+    this.facade.saveTask(event.taskId, event.dto);
+  }
+
+  onTaskEditCancelled(taskId: string) {
+    this.facade.cancelEditingTask(taskId);
+  }
+
+  deleteTaskMessage = (): string => {
+    return this.facade.deleteTaskMessage();
   };
 }

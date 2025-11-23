@@ -1,7 +1,6 @@
 @if (isLoading()) {
 <app-loading-spinner message="Loading project..."></app-loading-spinner>
 } @else if (project()) {
-
 <app-project-data-card
   [project]="project()!"
   [isEditingProject]="isEditingProject()"
@@ -16,7 +15,9 @@
   [project]="project()!"
   (createTaskClicked)="openCreateTaskModal()"
   (deleteTaskClicked)="onDeleteTaskRequest($event)"
-  (editTaskClicked)="onTaskUpdated($event)"
+  (editTaskStarted)="onTaskEditStarted($event)"
+  (editTaskCancelled)="onTaskEditCancelled($event)"
+  (taskSaved)="onTaskSaved($event)"
 />
 
 <app-create-task-modal [projectId]="project()!.id" (taskCreated)="onCreateTaskConfirmed($event)" />

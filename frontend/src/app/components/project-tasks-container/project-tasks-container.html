@@ -4,12 +4,10 @@
       Tasks
       <span class="badge bg-secondary ms-2">{{ project.taskItems.length || 0 }}</span>
     </h5>
-
     <button class="btn btn-sm btn-success" (click)="createTaskClicked.emit()">
       <i class="bi bi-plus-circle"></i> New Task
     </button>
   </div>
-
   <div class="card-body">
     @if (!project.taskItems || project.taskItems.length === 0) {
     <div class="text-center text-muted py-5">
@@ -21,9 +19,12 @@
       @for (task of project.taskItems; track task.id) {
       <app-task-list-item
         [task]="task"
+        [isEditing]="isTaskEditing(task.id)"
         class="list-group-item"
+        (editStarted)="editTaskStarted.emit($event)"
+        (editCancelled)="editTaskCancelled.emit($event)"
+        (saved)="taskSaved.emit($event)"
         (deleteTask)="deleteTaskClicked.emit($event)"
-        (editTask)="editTaskClicked.emit($event)"
       />
       }
     </div>

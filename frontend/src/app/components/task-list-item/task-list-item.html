@@ -1,9 +1,9 @@
 <div
   class="card mb-2 task-card"
-  [class.is-editing]="isEditing()"
+  [class.is-editing]="isEditing"
   [class.done-bg]="task.status === TaskStatus.Done"
 >
-  @if (isEditing()) {
+  @if (isEditing) {
   <div class="card-header bg-light border-bottom">
     <i class="bi bi-pencil-square me-2"></i>
     <strong>Editing Task:</strong> {{ task.title }}
@@ -11,7 +11,7 @@
   }
 
   <div class="card-body p-3">
-    @if (isEditing()) {
+    @if (isEditing) {
 
     <form #editForm="ngForm" (ngSubmit)="onSaveEdit()">
       <app-task-form-fields [formData]="editTaskDto()!" [showStatus]="true" />

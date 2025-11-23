@@ -6,6 +6,7 @@ import { TaskFormFields } from '../task-form-fields/task-form-fields';
 import { FormsModule } from '@angular/forms';
 import { StatusLabelPipe } from '../../pipes/status-label.pipe';
 import { StatusBadgeClassPipe } from '../../pipes/status-badge-class.pipe';
+import { formatDate } from '../../utils/helpers';
 
 @Component({
   selector: 'app-task-list-item',
@@ -15,26 +16,21 @@ import { StatusBadgeClassPipe } from '../../pipes/status-badge-class.pipe';
 })
 export class TaskListItem {
   @Input({ required: true }) task!: TaskItem;
-  @Output() editTask = new EventEmitter<{ taskId: string; dto: UpdateTaskDto }>();
-  @Output() deleteTask = new EventEmitter<TaskItem>();
+  @Input() isEditing = false;
 
-  isEditing = signal(false);
-  editTaskDto = signal<UpdateTaskDto | null>(null);
-  isSaving = signal(false);
+  // task ids
+  @Output() editStarted = new EventEmitter<string>();
+  @Output() editCancelled = new EventEmitter<string>();
+
+  @Output() saved = new EventEmitter<{ taskId: string; dto: UpdateTaskDto }>();
+  @Output() deleteTask = new EventEmitter<TaskItem>();
 
   protected readonly TaskStatus = TaskStatus;
 
-  onEdit() {
-    const formatDate = (dateStr: string | Date | undefined): string | undefined => {
-      if (!dateStr) return undefined;
-      try {
-        const date = typeof dateStr === 'string' ? new Date(dateStr) : dateStr;
-        return date.toISOString().split('T')[0];
-      } catch {
-        return undefined;
-      }
-    };
+  editTaskDto = signal<UpdateTaskDto | null>(null);
+  isSaving = signal(false);
 
+  onEdit() {
     this.editTaskDto.set({
       title: this.task.title,
       description: this.task.description,
@@ -42,7 +38,7 @@ export class TaskListItem {
       dueDate: formatDate(this.task.dueDate),
     });
 
-    this.isEditing.set(true);
+    this.editStarted.emit(this.task.id);
   }
 
   onSaveEdit() {
@@ -58,15 +54,15 @@ export class TaskListItem {
       dueDate: dto.dueDate,
     };
 
-    this.editTask.emit({
+    this.isSaving.set(true);
+    this.saved.emit({
       taskId: this.task.id,
       dto: cleanDto,
     });
-    this.isEditing.set(false);
   }
 
   onCancelEdit() {
-    this.isEditing.set(false);
+    this.editCancelled.emit(this.task.id);
   }
 
   onDelete() {
