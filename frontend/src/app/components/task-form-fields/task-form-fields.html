@@ -1,0 +1,56 @@
+<div class="mb-3">
+  <label for="taskTitle" class="form-label"> Title <span class="text-danger">*</span> </label>
+  <input
+    type="text"
+    class="form-control"
+    id="taskTitle"
+    name="title"
+    [(ngModel)]="formData.title"
+    required
+    maxlength="150"
+    #titleInput="ngModel"
+    [class.is-invalid]="titleInput.invalid && titleInput.touched"
+  />
+  @if (titleInput.invalid && titleInput.touched) {
+  <div class="invalid-feedback d-block">Task title is required (max 150 characters)</div>
+  }
+</div>
+
+@if (showStatus) {
+<div class="mb-3">
+  <label for="taskStatus" class="form-label">Status</label>
+  <select
+    class="form-select"
+    id="taskStatus"
+    name="status"
+    [(ngModel)]="updateData.status"
+    required
+  >
+    <option [value]="TaskStatus.Todo">{{ TaskStatus.Todo | statusLabel }}</option>
+    <option [value]="TaskStatus.InProgress">{{ TaskStatus.InProgress | statusLabel }}</option>
+    <option [value]="TaskStatus.Done">{{ TaskStatus.Done | statusLabel }}</option>
+  </select>
+</div>
+}
+
+<div class="mb-3">
+  <label for="taskDescription" class="form-label">Description</label>
+  <textarea
+    class="form-control"
+    id="taskDescription"
+    name="description"
+    [(ngModel)]="formData.description"
+    rows="3"
+  ></textarea>
+</div>
+
+<div class="mb-3">
+  <label for="taskDueDate" class="form-label">Due Date</label>
+  <input
+    type="date"
+    class="form-control"
+    id="taskDueDate"
+    name="dueDate"
+    [(ngModel)]="formData.dueDate"
+  />
+</div>

@@ -4,10 +4,11 @@ import { ModalIds } from '../../constants/modal-ids.constant';
 import { CreateTaskDto } from '../../models/task.model';
 import { ModalService } from '../../services/modal.service';
 import { Modal } from '../modal/modal';
+import { TaskFormFields } from '../task-form-fields/task-form-fields';
 
 @Component({
   selector: 'app-create-task-modal',
-  imports: [Modal, FormsModule],
+  imports: [Modal, FormsModule, TaskFormFields],
   templateUrl: './create-task-modal.html',
 })
 export class CreateTaskModal {

@@ -8,7 +8,7 @@ import { ProjectDataCard } from '../../components/project-data-card/project-data
 import { ProjectTasksContainer } from '../../components/project-tasks-container/project-tasks-container';
 import { ModalIds } from '../../constants/modal-ids.constant';
 import { CreateAndUpdateProjectDto, ProjectDetailModel } from '../../models/project.model';
-import { CreateTaskDto, TaskItem } from '../../models/task.model';
+import { CreateTaskDto, TaskItem, UpdateTaskDto } from '../../models/task.model';
 import { ModalService } from '../../services/modal.service';
 import { ProjectService } from '../../services/project.service';
 import { TaskService } from './../../services/task.service';
@@ -37,6 +37,7 @@ export class ProjectDetail implements OnInit {
   project = signal<ProjectDetailModel | null>(null);
   isLoading = signal(true);
   isEditingProject = signal(false);
+  taskToEdit = signal<TaskItem | null>(null);
   taskToDelete = signal<TaskItem | null>(null);
   protected readonly ModalIds = ModalIds;
 
@@ -171,6 +172,28 @@ export class ProjectDetail implements OnInit {
       error: (error) => {
         this.toastr.error(error, 'Error');
         this.taskToDelete.set(null);
+      },
+    });
+  }
+
+  onTaskUpdated(event: { taskId: string; dto: UpdateTaskDto }) {
+    this.taskService.update(event.taskId, event.dto).subscribe({
+      next: (serverResponse: TaskItem) => {
+        this.project.update((currentProject) => {
+          if (!currentProject) return null;
+
+          return {
+            ...currentProject,
+            taskItems: currentProject.taskItems.map((t) =>
+              t.id === serverResponse.id ? serverResponse : t
+            ),
+          };
+        });
+
+        this.toastr.success(`Task updated!`, 'Success');
+      },
+      error: (error) => {
+        this.toastr.error(error, 'Error');
       },
     });
   }

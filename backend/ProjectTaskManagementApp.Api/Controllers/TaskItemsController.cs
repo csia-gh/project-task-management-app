@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using ProjectTaskManagementApp.Api.Data;
 using ProjectTaskManagementApp.Api.Data.Entities;
 using ProjectTaskManagementApp.Api.DTOs;
+using System.Threading.Tasks;
 
 namespace ProjectTaskManagementApp.Api.Controllers
 {
@@ -90,7 +91,18 @@ namespace ProjectTaskManagementApp.Api.Controllers
                 return NotFound();
             }
 
-            return NoContent();
+            var responseDTO = new TaskItemResponseDTO
+            {
+                Id = taskItem.Id,
+                ProjectId = taskItem.ProjectId,
+                Title = taskItem.Title,
+                Description = taskItem.Description,
+                Status = taskItem.Status,
+                DueDate = taskItem.DueDate,
+                CreatedAt = taskItem.CreatedAt
+            };
+
+            return Ok(responseDTO);
         }
 
         // POST: api/TaskItems

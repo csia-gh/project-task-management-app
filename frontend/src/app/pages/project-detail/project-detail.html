@@ -16,6 +16,7 @@
   [project]="project()!"
   (createTaskClicked)="openCreateTaskModal()"
   (deleteTaskClicked)="onDeleteTaskRequest($event)"
+  (editTaskClicked)="onTaskUpdated($event)"
 />
 
 <app-create-task-modal [projectId]="project()!.id" (taskCreated)="onCreateTaskConfirmed($event)" />
