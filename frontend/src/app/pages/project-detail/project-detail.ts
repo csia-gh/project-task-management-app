@@ -12,10 +12,17 @@ import { CreateTaskDto, TaskItem } from '../../models/task.model';
 import { ModalService } from '../../services/modal.service';
 import { ProjectService } from '../../services/project.service';
 import { TaskService } from './../../services/task.service';
+import { ConfirmationModal } from '../../components/confirmation-modal/confirmation-modal';
 
 @Component({
   selector: 'app-project-detail',
-  imports: [LoadingSpinner, ProjectDataCard, ProjectTasksContainer, CreateTaskModal],
+  imports: [
+    LoadingSpinner,
+    ProjectDataCard,
+    ProjectTasksContainer,
+    CreateTaskModal,
+    ConfirmationModal,
+  ],
   templateUrl: './project-detail.html',
   styleUrl: './project-detail.css',
 })
@@ -30,6 +37,8 @@ export class ProjectDetail implements OnInit {
   project = signal<ProjectDetailModel | null>(null);
   isLoading = signal(true);
   isEditingProject = signal(false);
+  taskToDelete = signal<TaskItem | null>(null);
+  protected readonly ModalIds = ModalIds;
 
   projectForm: CreateAndUpdateProjectDto = {
     name: '',
@@ -136,4 +145,38 @@ export class ProjectDetail implements OnInit {
       },
     });
   }
+
+  onDeleteTaskRequest(task: TaskItem) {
+    this.taskToDelete.set(task);
+    this.modalService.open(this.ModalIds.DELETE_TASK_CONFIRMATION);
+  }
+
+  onDeleteTaskConfirmed() {
+    const task = this.taskToDelete();
+
+    if (!task || !this.project()) return;
+
+    this.taskService.delete(task.id).subscribe({
+      next: () => {
+        this.project.update((p) => {
+          if (!p) return null;
+          return {
+            ...p,
+            taskItems: p.taskItems.filter((t) => t.id !== task.id),
+          };
+        });
+        this.toastr.success(`Task '${task.title}' deleted successfully!`, 'Success');
+        this.taskToDelete.set(null);
+      },
+      error: (error) => {
+        this.toastr.error(error, 'Error');
+        this.taskToDelete.set(null);
+      },
+    });
+  }
+
+  deleteTaskMessage = () => {
+    const taskTitle = this.taskToDelete()?.title;
+    return `Are you sure you want to delete task '${taskTitle}'?`;
+  };
 }

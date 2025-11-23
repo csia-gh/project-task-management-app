@@ -19,7 +19,11 @@
     } @else {
     <div class="list-group list-group-flush">
       @for (task of project.taskItems; track task.id) {
-      <app-task-list-item [task]="task" class="list-group-item"> </app-task-list-item>
+      <app-task-list-item
+        [task]="task"
+        class="list-group-item"
+        (deleteTask)="deleteTaskClicked.emit($event)"
+      />
       }
     </div>
     }

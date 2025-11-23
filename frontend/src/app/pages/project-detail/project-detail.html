@@ -12,7 +12,20 @@
   (cancelClicked)="cancelEditing()"
 />
 
-<app-project-tasks-container [project]="project()!" (createTaskClicked)="openCreateTaskModal()" />
-}
+<app-project-tasks-container
+  [project]="project()!"
+  (createTaskClicked)="openCreateTaskModal()"
+  (deleteTaskClicked)="onDeleteTaskRequest($event)"
+/>
 
 <app-create-task-modal [projectId]="project()!.id" (taskCreated)="onCreateTaskConfirmed($event)" />
+
+<app-confirmation-modal
+  [modalID]="ModalIds.DELETE_TASK_CONFIRMATION"
+  title="Delete Task"
+  [message]="deleteTaskMessage()"
+  confirmButtonText="Yes, Delete Task"
+  confirmButtonClass="btn-danger"
+  (confirmed)="onDeleteTaskConfirmed()"
+/>
+}
