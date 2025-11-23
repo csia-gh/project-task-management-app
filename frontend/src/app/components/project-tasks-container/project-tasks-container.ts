@@ -3,16 +3,26 @@ import { ProjectDetailModel } from '../../models/project.model';
 import { TaskListItem } from '../task-list-item/task-list-item';
 import { TaskItem, UpdateTaskDto } from '../../models/task.model';
 import { ProjectDetailFacade } from '../../pages/project-detail/project-detail.facade';
+import {
+  TASK_FILTER_STATUSES,
+  TaskFilterStatus,
+  TaskFilterStatusEnum,
+  TaskStatus,
+} from '../../models/task-status.enum';
+import { FormsModule } from '@angular/forms';
 
 @Component({
   selector: 'app-project-tasks-container',
-  imports: [TaskListItem],
+  imports: [TaskListItem, FormsModule],
   templateUrl: './project-tasks-container.html',
 })
 export class ProjectTasksContainer {
   @Input({ required: true }) project!: ProjectDetailModel;
 
   private readonly facade = inject(ProjectDetailFacade);
+
+  protected readonly statuses = TASK_FILTER_STATUSES;
+  readonly currentFilter = this.facade.filterStatus;
 
   @Output() createTaskClicked = new EventEmitter<void>();
   @Output() deleteTaskClicked = new EventEmitter<TaskItem>();
@@ -22,5 +32,9 @@ export class ProjectTasksContainer {
 
   isTaskEditing(taskId: string): boolean {
     return this.facade.isEditingTask(taskId);
+  }
+
+  onStatusFilterChange(status: TaskFilterStatusEnum) {
+    this.facade.changeFilterStatus(status as TaskFilterStatus);
   }
 }

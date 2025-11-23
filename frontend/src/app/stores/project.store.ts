@@ -1,5 +1,6 @@
 import { Injectable, signal, computed } from '@angular/core';
 import { Project, ProjectDetailModel } from '../models/project.model';
+import { TaskItem } from '../models/task.model';
 
 @Injectable({
   providedIn: 'root',
@@ -64,7 +65,18 @@ export class ProjectStore {
   }
 
   // TASK MUTATIONS (selected project page)
-  addTaskToSelected(task: any) {
+  setSelectedProjectTasks(tasks: TaskItem[]) {
+    this._selectedProject.update((current) =>
+      current
+        ? {
+            ...current,
+            taskItems: tasks,
+          }
+        : null
+    );
+  }
+
+  addTaskToSelectedProjectTasks(task: any) {
     this._selectedProject.update((p) => (p ? { ...p, taskItems: [...p.taskItems, task] } : null));
   }
 

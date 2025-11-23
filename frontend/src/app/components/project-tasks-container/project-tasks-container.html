@@ -4,9 +4,23 @@
       Tasks
       <span class="badge bg-secondary ms-2">{{ project.taskItems.length || 0 }}</span>
     </h5>
-    <button class="btn btn-sm btn-success" (click)="createTaskClicked.emit()">
-      <i class="bi bi-plus-circle"></i> New Task
-    </button>
+
+    <div class="d-flex align-items-center gap-2">
+      <select
+        id="taskStatusFilter"
+        class="form-select form-select-sm"
+        [ngModel]="currentFilter()"
+        (ngModelChange)="onStatusFilterChange($event)"
+      >
+        @for (status of statuses; track status) {
+        <option [value]="status">{{ status }}</option>
+        }
+      </select>
+
+      <button class="btn btn-sm btn-success flex-shrink-0" (click)="createTaskClicked.emit()">
+        <i class="bi bi-plus-circle"></i> New Task
+      </button>
+    </div>
   </div>
   <div class="card-body">
     @if (!project.taskItems || project.taskItems.length === 0) {

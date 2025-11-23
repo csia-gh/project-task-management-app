@@ -1,3 +1,4 @@
+import { TaskFilterStatus, TaskFilterStatusEnum } from './../../models/task-status.enum';
 import { Injectable, inject, signal, computed, OnDestroy } from '@angular/core';
 import { Title } from '@angular/platform-browser';
 import { ToastrService } from 'ngx-toastr';
@@ -24,6 +25,8 @@ export class ProjectDetailFacade implements OnDestroy {
 
   private readonly _isLoading = signal(false);
   private readonly _taskToDelete = signal<TaskItem | null>(null);
+  private readonly _filterStatus = signal<TaskFilterStatus>('All');
+  readonly filterStatus = this._filterStatus.asReadonly();
 
   readonly isLoading = this._isLoading.asReadonly();
   readonly taskToDelete = this._taskToDelete.asReadonly();
@@ -101,6 +104,20 @@ export class ProjectDetailFacade implements OnDestroy {
   }
 
   // task actions
+  refreshSelectedProjectTasks(projectId: string, status: TaskFilterStatus): void {
+    this.projectService
+      .getProjectTasks(projectId, status)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (tasks) => {
+          this.store.setSelectedProjectTasks(tasks);
+        },
+        error: (error) => {
+          this.toastr.error(error);
+        },
+      });
+  }
+
   openCreateTaskModal() {
     this.editState.cancelAnyEdit();
     if (this.store.selectedProject()) {
@@ -114,7 +131,12 @@ export class ProjectDetailFacade implements OnDestroy {
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (newTask) => {
-          this.store.addTaskToSelected(newTask);
+          if (
+            newTask.status === this._filterStatus() ||
+            this._filterStatus() === TaskFilterStatusEnum.All
+          ) {
+            this.store.addTaskToSelectedProjectTasks(newTask);
+          }
           this.toastr.success(`Task '${newTask.title}' created!`);
         },
         error: (error) => {
@@ -137,7 +159,14 @@ export class ProjectDetailFacade implements OnDestroy {
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (updated) => {
-          this.store.updateTaskInSelected(taskId, updated);
+          if (
+            updated.status === this._filterStatus() ||
+            this._filterStatus() === TaskFilterStatusEnum.All
+          ) {
+            this.store.updateTaskInSelected(taskId, updated);
+          } else {
+            this.store.removeTaskFromSelected(taskId);
+          }
           this.editState.cancelEdit('task', taskId);
           this.toastr.success('Task updated!');
         },
@@ -171,6 +200,15 @@ export class ProjectDetailFacade implements OnDestroy {
           this._taskToDelete.set(null);
         },
       });
+  }
+
+  changeFilterStatus(status: TaskFilterStatus): void {
+    this.editState.cancelAnyEdit();
+    this._filterStatus.set(status);
+    const projectId = this.store.selectedProject()?.id;
+    if (projectId) {
+      this.refreshSelectedProjectTasks(projectId, status);
+    }
   }
 
   ngOnDestroy() {

@@ -4,6 +4,7 @@ import { BaseService } from './base.service';
 import { Project, ProjectDetailModel } from '../models/project.model';
 import { catchError, Observable } from 'rxjs';
 import { TaskItem } from '../models/task.model';
+import { TaskFilterStatus, TaskStatus } from '../models/task-status.enum';
 
 @Injectable({
   providedIn: 'root',
@@ -19,16 +20,11 @@ export class ProjectService extends BaseService<Project> {
       .pipe(catchError(this.handleError));
   }
 
-  getProjectTasks(projectId: string): Observable<TaskItem[]> {
-    return this.http
-      .get<TaskItem[]>(`${this.baseUrl}/projects/${projectId}/tasks`)
-      .pipe(catchError(this.handleError));
-  }
-
-  // GET /api/projects/{projectId}/tasks?status=Done
-  getProjectTasksByStatus(projectId: string, status: string): Observable<TaskItem[]> {
-    return this.http
-      .get<TaskItem[]>(`${this.baseUrl}/projects/${projectId}/tasks?status=${status}`)
-      .pipe(catchError(this.handleError));
+  getProjectTasks(projectId: string, status: TaskFilterStatus = 'All'): Observable<TaskItem[]> {
+    let url = `${this.baseUrl}/projects/${projectId}/tasks`;
+    if (status !== 'All') {
+      url += `?status=${status}`;
+    }
+    return this.http.get<TaskItem[]>(url).pipe(catchError(this.handleError));
   }
 }
