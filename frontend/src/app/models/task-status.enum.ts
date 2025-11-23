@@ -13,6 +13,13 @@ export enum TaskFilterStatusEnum {
   All = 'All',
 }
 
+export const STATUS_LABELS: Record<TaskFilterStatus, string> = {
+  [TaskStatus.Todo]: 'To Do',
+  [TaskStatus.InProgress]: 'In Progress',
+  [TaskStatus.Done]: 'Done',
+  All: 'All',
+};
+
 export const TASK_FILTER_STATUSES: TaskFilterStatus[] = [
   'All',
   TaskStatus.Todo,

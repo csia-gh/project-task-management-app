@@ -13,7 +13,7 @@
         (ngModelChange)="onStatusFilterChange($event)"
       >
         @for (status of statuses; track status) {
-        <option [value]="status">{{ status }}</option>
+        <option [value]="status">{{ status | statusLabel }}</option>
         }
       </select>
 
