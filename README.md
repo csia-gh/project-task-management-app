@@ -185,3 +185,7 @@ The Angular app will auto-reload on code changes.
 
 ### Migration Issues
 - Delete the database and restart the application to recreate it
+
+## Live Demo
+
+A live version of the application is available for testing: [Demo Link](https://taskapi-9j9d.onrender.com/)
